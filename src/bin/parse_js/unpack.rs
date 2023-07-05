@@ -1,4 +1,4 @@
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use std::error::Error;
 use std::fs;
 use std::fs::File;
@@ -7,9 +7,15 @@ use std::io::BufReader;
 
 #[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
-pub struct JavascriptMap {
+struct JavascriptMap {
     sources: Vec<String>,
     sources_content: Vec<String>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "PascalCase")]
+struct ClassHashes {
+    card_name: String,
 }
 
 #[inline(never)]
@@ -53,6 +59,29 @@ pub fn unpack_map_js() -> Result<(), Box<dyn Error>> {
     let m: JavascriptMap = serde_json::from_reader(reader)?;
 
     assert_eq!(m.sources.len(), m.sources_content.len());
+
+    for index in 0..m.sources.len() {
+        let _source = &m.sources[index];
+        let _content = &m.sources_content[index];
+
+        if _source.ends_with("cards/card-names.js") {
+            const START_CARDNAME: &str = "var CardName = function () {";
+            let start_index = _content.find(START_CARDNAME).unwrap();
+            let mut brackets = 1;
+            let mut end_index = start_index;
+            for c in _content.chars().skip(start_index + 1) {
+                brackets += match c {
+                    '{' => 1,
+                    '}' => -1,
+                    _ => 0
+                };
+                end_index += 1;
+                if brackets == 0 { break; }
+            }
+            let card_name = &_content[start_index..end_index];
+            println!("{}", card_name);
+        }
+    }
 
     Ok(())
 }
