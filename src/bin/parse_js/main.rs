@@ -1,5 +1,5 @@
 mod unpack;
 
 fn main() {
-    let map = unpack::unpack_map_js().unwrap();
+    let _ = unpack::unpack_map_js();
 }
