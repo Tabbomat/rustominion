@@ -20,20 +20,18 @@ fn find_latest_map() -> Option<(String, String)> {
     let mut latest_version: Option<String> = None;
     let mut latest_file: Option<String> = None;
 
-    for file in files {
-        if let Ok(entry) = file {
-            if let Some(file_name) = entry.file_name().to_str() {
-                if file_name.ends_with(".map.js") {
-                    let version = file_name
-                        .trim_end_matches(".map.js")
-                        .rsplitn(2, '-')
-                        .next()?
-                        .to_owned();
+    for file in files.flatten() {
+        if let Some(file_name) = file.file_name().to_str() {
+            if file_name.ends_with(".map.js") {
+                let version = file_name
+                    .trim_end_matches(".map.js")
+                    .rsplit('-')
+                    .next()?
+                    .to_owned();
 
-                    if latest_version.is_none() || version > latest_version.clone().unwrap() {
-                        latest_version = Some(version);
-                        latest_file = Some(file_name.to_owned());
-                    }
+                if latest_version.is_none() || version > latest_version.clone().unwrap() {
+                    latest_version = Some(version);
+                    latest_file = Some(file_name.to_owned());
                 }
             }
         }
@@ -54,7 +52,7 @@ pub fn unpack_map_js() -> Result<(), Box<dyn Error>> {
 
     let m: JavascriptMap = serde_json::from_reader(reader)?;
 
-    assert_eq!(m.sources.len() , m.sources_content.len());
+    assert_eq!(m.sources.len(), m.sources_content.len());
 
     Ok(())
 }
