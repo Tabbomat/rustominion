@@ -48,6 +48,11 @@ fn find_latest_map() -> Option<(String, String)> {
     }
 }
 
+/// General idea: Iterate twice over all data in the .map.js. Keep hashes of all successfully converted data
+/// First run: Identify all classes and enums. If current hash != old hash, generate raw definitions
+/// and ask user to verify and compile/run again. Only one class / enum at a time
+/// If first run finished with all hashes equal to old ones, do a second run:
+/// We now have compiled all structs and enums, we now can initialize structs and serialize them.
 pub fn unpack_map_js() -> Result<(), Box<dyn Error>> {
     let w = find_latest_map();
 
