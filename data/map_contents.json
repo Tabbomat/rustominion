@@ -1,0 +1,12 @@
+{
+  "lib/game/cards/card-names.js": [
+    {
+      "Start": "var CardName = function () {",
+      "Type": "Class"
+    },
+    {
+      "Start": "var CardNames = {",
+      "Type": "MapEnumToStatic"
+    }
+  ]
+}

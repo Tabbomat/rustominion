@@ -2,5 +2,5 @@ mod unpack;
 mod utility;
 
 fn main() {
-    let _ = unpack::unpack_map_js();
+    unpack::unpack_map_js().expect("TODO: panic message");
 }

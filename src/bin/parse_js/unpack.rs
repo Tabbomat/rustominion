@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use crate::utility;
 use serde::{Deserialize, Serialize};
 use std::error::Error;
@@ -14,9 +15,20 @@ struct JavascriptMap {
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "PascalCase")]
-struct ClassHashes {
-    card_name: String,
+struct JavascriptDefinition {
+    start: String,
+    type_: JavascriptContentType,
 }
+
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "PascalCase")]
+enum JavascriptContentType {
+    Class,
+    MapEnumToStatic,
+}
+
+type JavascriptFileContents = HashMap<String, Vec<JavascriptDefinition>>;
+
 
 fn find_latest_map() -> Option<(String, String)> {
     // TODO: Download from internet
@@ -48,6 +60,8 @@ fn find_latest_map() -> Option<(String, String)> {
     }
 }
 
+
+#[inline(never)]
 /// General idea: Iterate twice over all data in the .map.js. Keep hashes of all successfully converted data
 /// First run: Identify all classes and enums. If current hash != old hash, generate raw definitions
 /// and ask user to verify and compile/run again. Only one class / enum at a time
@@ -56,23 +70,34 @@ fn find_latest_map() -> Option<(String, String)> {
 pub fn unpack_map_js() -> Result<(), Box<dyn Error>> {
     let w = find_latest_map();
 
-    let file = File::open(w.unwrap().1)?;
-    let reader = BufReader::new(file);
+    let javascript_map: JavascriptMap = serde_json::from_reader(BufReader::new(File::open(w.unwrap().1)?))?;
+    let javascript_contents: JavascriptFileContents = serde_json::from_reader(BufReader::new(File::open("data/map_contents.json")?))?;
 
-    let m: JavascriptMap = serde_json::from_reader(reader)?;
+    assert_eq!(javascript_map.sources.len(), javascript_map.sources_content.len());
 
-    assert_eq!(m.sources.len(), m.sources_content.len());
+    for index in 0..javascript_map.sources.len() {
+        let source = &javascript_map.sources[index];
+        let content = &javascript_map.sources_content[index];
 
-    for index in 0..m.sources.len() {
-        let source = &m.sources[index];
-        let content = &m.sources_content[index];
-
-        if source.ends_with("cards/card-names.js") {
-            const START_CARDNAME: &str = "var CardName = function () {";
-            let card_name = utility::get_class_definition(START_CARDNAME, content).unwrap();
-            println!("{}", &card_name);
+        if let Some(data) = javascript_contents.get(source) {
+            for def in data {
+                match def.type_ {
+                    JavascriptContentType::Class => handle_class_definition(&def.start, content),
+                    JavascriptContentType::MapEnumToStatic => handle_map_enum_static(&def.start, content),
+                }
+            }
         }
     }
 
     Ok(())
+}
+
+fn handle_class_definition(class_start: &str, content: &str) {
+    let _definition = utility::get_class_definition(class_start, content).unwrap();
+    todo!()
+}
+
+fn handle_map_enum_static(map_start: &str, content: &str) {
+    let _definition = utility::get_class_definition(map_start, content).unwrap();
+    todo!()
 }
