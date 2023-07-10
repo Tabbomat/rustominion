@@ -1,5 +1,5 @@
-/// `class_start` should look something like "var ClassName = function () {".
-/// The opening { is very important!
+/// `class_start` should look something like `"var ClassName = function () {"`.
+/// The opening `{` is very important!
 pub fn get_class_definition<'a>(class_start: &'a str, content: &'a str) -> Option<&'a str> {
     let start_index = content.find(class_start)?;
     let mut brackets = 1;

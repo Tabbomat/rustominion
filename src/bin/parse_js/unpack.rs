@@ -93,6 +93,13 @@ pub fn unpack_map_js() -> Result<(), Box<dyn Error>> {
 }
 
 fn handle_class_definition(class_start: &str, content: &str) {
+    fs::create_dir_all("src/rustominion/generated");
+    // TODO: determine file name
+    // TODO: generate mod.rs in /generated, and append file name
+    // TODO: generate file content
+    // Workflow is "generate class.rs" -> User checks it and indicates it in the file
+    // on subsequent runs: If content is the same as during last "generate class.rs", check if user indicated it as finished
+    // if both yes: don't touch the file, shortcut return early
     let _definition = utility::get_class_definition(class_start, content).unwrap();
     todo!()
 }
