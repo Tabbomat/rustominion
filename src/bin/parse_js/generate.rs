@@ -1,5 +1,3 @@
-use crate::utility;
-
 use crate::deserialize::{JavascriptContentType, JavascriptDefinition};
 use crate::gen_class::RustClass;
 use crate::gen_enum_json::RustEnumJson;
@@ -8,21 +6,23 @@ use regex::Regex;
 use std::error::Error;
 use std::fs;
 use std::fs::File;
-use std::io::{BufWriter, LineWriter, Write};
+use std::io::{BufWriter, Write};
 
 pub struct RustCodeGenerator {
     classes: Vec<RustClass>,
     enum_jsons: Vec<RustEnumJson>,
+    version: String,
 }
 
 impl RustCodeGenerator {
-    pub fn new() -> Result<RustCodeGenerator, Box<dyn Error>> {
+    pub fn new(version: String) -> Result<RustCodeGenerator, Box<dyn Error>> {
         fs::create_dir_all("src/rustominion/generated")?;
         fs::create_dir_all("src/bin/generate_json_data/generated")?;
 
         Ok(RustCodeGenerator {
             classes: vec![],
             enum_jsons: vec![],
+            version,
         })
     }
 
@@ -36,8 +36,8 @@ impl RustCodeGenerator {
     fn generate_class(&mut self, class_start: &str, content: &str) -> Result<(), Box<dyn Error>> {
         static RE_CLASSNAME: Lazy<Regex> = Lazy::new(|| Regex::new(r"var (\w+) = function").unwrap());
         let classname = RE_CLASSNAME.captures(class_start).unwrap().get(1).unwrap().as_str();
-        let mut class = RustClass::new(classname)?;
-        class.generate(content)?;
+        let mut class = RustClass::new(classname);
+        class.generate(content, self.version.as_str())?;
         self.classes.push(class);
 
         Ok(())
@@ -57,4 +57,3 @@ impl Drop for RustCodeGenerator {
         }
     }
 }
-

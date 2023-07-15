@@ -1,11 +1,11 @@
 use crate::generate::RustCodeGenerator;
+use crate::utility::get_definition;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::error::Error;
 use std::fs;
 use std::fs::File;
 use std::io::BufReader;
-use crate::utility::get_definition;
 
 #[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -63,14 +63,16 @@ fn find_latest_map() -> Option<(String, String)> {
 /// If first run finished with all hashes equal to old ones, do a second run:
 /// We now have compiled all structs and enums, we now can initialize structs and serialize them.
 pub fn unpack_map_js() -> Result<(), Box<dyn Error>> {
-    let w = find_latest_map();
+    let Some((version, path)) = find_latest_map() else {
+        panic!("Could not find map.")
+    };
 
-    let javascript_map: JavascriptMap = serde_json::from_reader(BufReader::new(File::open(w.unwrap().1)?))?;
+    let javascript_map: JavascriptMap = serde_json::from_reader(BufReader::new(File::open(path)?))?;
     let javascript_contents: JavascriptFileContents = serde_json::from_reader(BufReader::new(File::open("data/map_contents.json")?))?;
 
     assert_eq!(javascript_map.sources.len(), javascript_map.sources_content.len());
 
-    let mut generator = RustCodeGenerator::new()?;
+    let mut generator = RustCodeGenerator::new(version)?;
 
     for index in 0..javascript_map.sources.len() {
         let source = &javascript_map.sources[index];

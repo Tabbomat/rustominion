@@ -5,6 +5,4 @@ pub struct RustEnumJson {
     writer: BufWriter<File>,
 }
 
-impl RustEnumJson {
-
-}
+impl RustEnumJson {}
