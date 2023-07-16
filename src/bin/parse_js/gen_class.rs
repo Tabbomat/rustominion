@@ -1,4 +1,4 @@
-use crate::utility::get_definition;
+use crate::utility::{get_definition, run_rustfmt};
 use convert_case::{Case, Casing};
 use once_cell::sync::Lazy;
 use regex::Regex;
@@ -92,5 +92,11 @@ impl RustClass {
         // TODO: use _createClass
 
         Ok(())
+    }
+}
+
+impl Drop for RustClass {
+    fn drop(&mut self) {
+        run_rustfmt(self.path.as_str()).expect("Could not run rustfmt");
     }
 }

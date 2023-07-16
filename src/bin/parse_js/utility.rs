@@ -1,3 +1,6 @@
+use std::error::Error;
+use std::process::Command;
+
 /// `start` should look something like `"var ClassName = function () {"`.
 /// The opening `{` is very important!
 pub fn get_definition<'a>(start: &'a str, content: &'a str) -> Option<&'a str> {
@@ -16,4 +19,10 @@ pub fn get_definition<'a>(start: &'a str, content: &'a str) -> Option<&'a str> {
         }
     }
     Some(&content[start_index..end_index])
+}
+
+pub fn run_rustfmt(source_file: &str) -> Result<(), Box<dyn Error>> {
+    let output = Command::new("rustfmt").arg(source_file).output()?;
+    // TODO: check output.status.success()
+    Ok(())
 }
