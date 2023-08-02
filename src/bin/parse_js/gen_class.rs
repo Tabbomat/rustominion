@@ -41,6 +41,10 @@ impl RustClass {
         static RE_CONSTRUCTOR: Lazy<Regex> = Lazy::new(|| Regex::new(r"function (\w+)\((.*?)\) \{").unwrap());
         let capture = RE_CONSTRUCTOR.captures(content).unwrap();
         let (_, [matched_name, constructor_args]) = capture.extract();
+        let constructor_args = constructor_args
+            .split(',')
+            .map(|s| s.trim().to_case(Case::Snake))
+            .collect::<Vec<String>>();
         assert_eq!(self.name, matched_name);
         let mut index = capture.get(0).unwrap().end();
         // Identify attributes
@@ -49,6 +53,9 @@ impl RustClass {
         // Identify start of methods
         static RE_METHODS: Lazy<Regex> = Lazy::new(|| Regex::new(r" +this\.(\w+) = function \(\) \{").unwrap());
         let index_of_first_method = RE_METHODS.find_at(content, index).unwrap().start();
+        let args_assignment = &content[index..index_of_first_method].trim();
+
+        let mut class_attributes = Vec::new();
 
         for capture in RE_ATTRIBUTES.captures_iter(&content[index..]) {
             let end = capture.get(0).unwrap().end();
@@ -57,15 +64,43 @@ impl RustClass {
             }
             last_index = end;
             let (_, [attr, arg]) = capture.extract();
+            let snake_attr = attr.to_case(Case::Snake);
             writeln!(
                 writer,
-                "    {}: u8, // CHECK THIS: from constructor arg {}",
-                attr.to_case(Case::Snake),
-                arg
+                "    {}: u8, // CHECK THIS: initialized in constructor from {}",
+                snake_attr, arg
             )?;
+            class_attributes.push(snake_attr);
         }
 
         writeln!(writer, "}}\n\n#[allow(dead_code)]\nimpl {} {{", self.name)?;
+
+        // write constructor
+        writeln!(
+            writer,
+            "    pub fn new({}) -> Self {{",
+            constructor_args
+                .iter()
+                .map(|a| format!("{}: u8", a))
+                .collect::<Vec<String>>()
+                .join(", ")
+        )?;
+        writeln!(writer, "        Self {{")?;
+        for attribute in class_attributes {
+            if constructor_args.contains(&attribute) {
+                writeln!(writer, "            {},", attribute);
+            } else {
+                writeln!(writer, "            {}: 0,", attribute);
+            }
+        }
+        writeln!(writer, "        }}")?;
+        writeln!(writer, "        // TODO: Check this: ")?;
+        for line in args_assignment.split('\n') {
+            writeln!(writer, "        //{line}")?;
+        }
+        writeln!(writer, "    }}")?;
+
+        // write methods
         let method_slice = &content[index_of_first_method..];
         for capture in RE_METHODS.captures_iter(method_slice) {
             let whole_match = capture.get(0).unwrap();
