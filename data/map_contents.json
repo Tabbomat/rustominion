@@ -8,5 +8,40 @@
       "Start": "var CardNames = {",
       "Type": "MapEnumToStatic"
     }
+  ],
+  "lib/game/cards/card-properties/type.js": [
+    {
+      "Start": "function Type(name) {",
+      "Type": "Class"
+    },
+    {
+      "Start": "var Types = {",
+      "Type": "MapEnumToStatic"
+    }
+  ],
+  "lib/game/cards/card-properties/expansion.js": [
+    {
+      "Start": "var Expansion = function () {",
+      "Type": "Class"
+    },
+    {
+      "Start": "var Expansions = {",
+      "Type": "MapEnumToStatic"
+    }
+  ],
+  "lib/game/cards/card-properties/cost.js": [
+    {
+      "Start": "var Cost = function () {",
+      "Type": "Class"
+    },{
+      "Start": "function costSorter(cost1, cost2) {",
+      "Type": "Function"
+    },{
+      "Start": "function cardNameSorter(cardName1, cardName2) {",
+      "Type": "Function"
+    },{
+      "Start": "function stackCardNameSorter(cardName1, cardName2) {",
+      "Type": "Function"
+    }
   ]
 }

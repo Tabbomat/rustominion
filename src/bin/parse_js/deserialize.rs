@@ -27,6 +27,7 @@ pub struct JavascriptDefinition {
 pub enum JavascriptContentType {
     Class,
     MapEnumToStatic,
+    Function
 }
 
 type JavascriptFileContents = HashMap<String, Vec<JavascriptDefinition>>;

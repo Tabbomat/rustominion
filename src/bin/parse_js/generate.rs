@@ -30,12 +30,17 @@ impl RustCodeGenerator {
         match definition.type_ {
             JavascriptContentType::Class => self.generate_class(&definition.start, content),
             JavascriptContentType::MapEnumToStatic => self.generate_enum_json(&definition.start, content),
+            _ => { Ok(()) }
         }
     }
 
     fn generate_class(&mut self, class_start: &str, content: &str) -> Result<(), Box<dyn Error>> {
         static RE_CLASSNAME: Lazy<Regex> = Lazy::new(|| Regex::new(r"var (\w+) = function").unwrap());
-        let classname = RE_CLASSNAME.captures(class_start).unwrap().get(1).unwrap().as_str();
+        static RE_CLASSNAME_SHORT: Lazy<Regex> = Lazy::new(|| Regex::new(r"function (\w+)\(").unwrap());
+        let classname = match RE_CLASSNAME.captures(class_start) {
+            Some(m) => m.get(1).unwrap().as_str(),
+            None => RE_CLASSNAME_SHORT.captures(class_start).unwrap().get(1).unwrap().as_str()
+        };
         let mut class = RustClass::new(classname);
         class.generate(content, self.version.as_str())?;
         self.classes.push(class);
@@ -52,6 +57,8 @@ impl RustCodeGenerator {
 impl Drop for RustCodeGenerator {
     fn drop(&mut self) {
         let mut class_mod = BufWriter::new(File::create("src/rustominion/generated/mod.rs").expect("Could not open mod.rs"));
+        // TODO: Remove this!
+        return;
         for class in &self.classes {
             writeln!(class_mod, "pub mod {};", class.filename()).expect("Could not write to mod.rs");
         }
