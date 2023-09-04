@@ -4,11 +4,13 @@ use once_cell::sync::Lazy;
 use regex::Regex;
 use std::error::Error;
 use std::fs::File;
-use std::io::{BufWriter, LineWriter, Write};
+use std::io::{BufRead, BufReader, BufWriter, LineWriter, Write};
 
 pub struct RustClass {
     path: String,
     name: String,
+    constructor: Option<RustMethod>,
+    methods: Vec<RustMethod>,
 }
 
 impl RustClass {
@@ -16,6 +18,8 @@ impl RustClass {
         RustClass {
             path: format!("src/rustominion/generated/{}.rs", name.to_lowercase()),
             name: name.to_owned(),
+            constructor: None,
+            methods: vec![],
         }
     }
 
@@ -28,7 +32,11 @@ impl RustClass {
     }
 
     pub fn generate(&mut self, content: &str, version: &str) -> Result<(), Box<dyn Error>> {
-        // TODO: Check version at top of file. If version exists and is same as current, don't do anything to the file
+        // Check version at top of file. If version exists and is same as current, don't do anything to the file
+        if self.is_existing_file_ok(version) {
+            return Ok(())
+        }
+
         let mut writer = LineWriter::new(File::create(&self.path)?);
         // write metadata
         writeln!(writer, "// version: {version}")?;
@@ -54,7 +62,7 @@ impl RustClass {
         static RE_METHODS: Lazy<Regex> = Lazy::new(|| Regex::new(r" +(?:this|self)\.(\w+) = function \(\) \{").unwrap());
         let first_method_at = RE_METHODS.find_at(content, index);
         let index_of_first_method = match first_method_at {
-            Some(m)=>m.start(),
+            Some(m) => m.start(),
             None => {
                 let constructor = get_definition(constructor_start, content).unwrap();
                 let i = capture.get(0).unwrap().start();
@@ -137,10 +145,64 @@ impl RustClass {
 
         Ok(())
     }
+
+    fn is_existing_file_ok(&self, version: &str) -> bool {
+        // Open the file
+        let file = match File::open(&self.path) {
+            Ok(file) => file,
+            _ => return false
+        };
+
+        // Read the file line by line
+        let reader = BufReader::new(file);
+        let mut first_line = String::new();
+
+        // Read the first line
+        let mut lines = reader.lines();
+        if let Some(line) = lines.next() {
+            match line {
+                Ok(l) => first_line = l,
+                _ => return false
+            }
+        } else {
+            // File is empty or cannot read the first line
+            return false;
+        }
+
+        // Check if the first line contains the correct version
+        if !first_line.trim().eq(format!("// version: {version}").as_str()) {
+            return false;
+        }
+
+        // User still has to rework the file if it contains any _TODO
+        for line in lines {
+            match line {
+                Ok(content) => {
+                    if content.contains("TODO") {
+                        return false;
+                    }
+                }
+                _ => return false,
+            }
+        }
+
+        true
+    }
 }
 
 impl Drop for RustClass {
     fn drop(&mut self) {
         run_rustfmt(self.path.as_str()).expect("Could not run rustfmt");
     }
+}
+
+struct RustArgument {
+    name: String,
+    is_option: bool,
+}
+
+struct RustMethod {
+    name: String,
+    args: Vec<RustArgument>,
+    body: Vec<String>,
 }
