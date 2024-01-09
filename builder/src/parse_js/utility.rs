@@ -1,6 +1,3 @@
-use crate::utility::CommentState::{block, line, none};
-use once_cell::sync::Lazy;
-use regex::Regex;
 use std::collections::HashMap;
 use std::error::Error;
 use std::process::Command;
@@ -34,7 +31,7 @@ pub fn run_rustfmt(source_file: &str) -> Result<(), Box<dyn Error>> {
 /// This assumes that the source code is valid, and that every statement ends with a semicolon.
 /// Trailing semicolon for function declarations is optional.
 pub fn get_next_javascript_statement<'a>(source_code: &'a str) -> (JavascriptStatement, &'a str) {
-    let start_index = get_code_index(source_code, 0);
+    let start_index = get_code_index(source_code, 0, Vec::new());
     if start_index >= source_code.len() {
         return (JavascriptStatement::Empty(), "");
     }
@@ -49,7 +46,7 @@ enum CommentState {
 }
 
 /// Identify index >= start of next character which is nether whitespace nor part of a comment
-fn get_code_index(source_code: &str, start: usize, stack: Vec<char>) -> usize {
+fn get_code_index(source_code: &str, start: usize, mut stack: Vec<char>) -> usize {
     // let chars = source_code.chars().skip(start);
     // for z in chars.clone().zip(chars.skip(1)).enumerate() {
     //     match (z, &comment_state, stack.len()) {
@@ -79,10 +76,11 @@ fn get_code_index(source_code: &str, start: usize, stack: Vec<char>) -> usize {
             // handle end of block comment
             (i, '*', Some('*')) if i < chars.len() - 1 && chars[i + 1] == '/' => { stack.pop(); }
             // handle start and end of string
-            (_, '"', Some('"')) => { stack.pop(); },
-            (_, '"', None)
+            (_, '"', Some('"')) => { stack.pop(); }
+            // (_, '"', None)
             // handle braces and strings. They can only start if not in comment or string
             // (_, '(', Some(&end)) if !""
+            _ => {}
         }
     }
 

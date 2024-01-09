@@ -1,10 +1,10 @@
-use crate::utility::{get_definition, run_rustfmt};
+use crate::parse_js::utility::{get_definition, run_rustfmt};
 use convert_case::{Case, Casing};
 use once_cell::sync::Lazy;
 use regex::Regex;
 use std::error::Error;
 use std::fs::File;
-use std::io::{BufRead, BufReader, BufWriter, LineWriter, Write};
+use std::io::{BufRead, BufReader, LineWriter, Write};
 
 pub struct RustClass {
     path: String,

@@ -1,5 +1,5 @@
-use crate::generate::RustCodeGenerator;
-use crate::utility::get_definition;
+use crate::parse_js::generate::RustCodeGenerator;
+use crate::parse_js::utility::get_definition;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::error::Error;

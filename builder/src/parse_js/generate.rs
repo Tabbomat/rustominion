@@ -1,6 +1,6 @@
-use crate::deserialize::{JavascriptContentType, JavascriptDefinition};
-use crate::gen_class::RustClass;
-use crate::gen_enum_json::RustEnumJson;
+use crate::parse_js::deserialize::{JavascriptContentType, JavascriptDefinition};
+use crate::parse_js::gen_class::RustClass;
+use crate::parse_js::gen_enum_json::RustEnumJson;
 use once_cell::sync::Lazy;
 use regex::Regex;
 use std::error::Error;
