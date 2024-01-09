@@ -34,7 +34,7 @@ impl RustClass {
     pub fn generate(&mut self, content: &str, version: &str) -> Result<(), Box<dyn Error>> {
         // Check version at top of file. If version exists and is same as current, don't do anything to the file
         if self.is_existing_file_ok(version) {
-            return Ok(())
+            return Ok(());
         }
 
         let mut writer = LineWriter::new(File::create(&self.path)?);
@@ -81,11 +81,7 @@ impl RustClass {
             last_index = end;
             let (_, [attr, arg]) = capture.extract();
             let snake_attr = attr.to_case(Case::Snake);
-            writeln!(
-                writer,
-                "    {}: u8, // TODO: initialized in constructor from {}",
-                snake_attr, arg
-            )?;
+            writeln!(writer, "    {}: u8, // TODO: initialized in constructor from {}", snake_attr, arg)?;
             class_attributes.push(snake_attr);
         }
 
@@ -150,7 +146,7 @@ impl RustClass {
         // Open the file
         let file = match File::open(&self.path) {
             Ok(file) => file,
-            _ => return false
+            _ => return false,
         };
 
         // Read the file line by line
@@ -162,7 +158,7 @@ impl RustClass {
         if let Some(line) = lines.next() {
             match line {
                 Ok(l) => first_line = l,
-                _ => return false
+                _ => return false,
             }
         } else {
             // File is empty or cannot read the first line

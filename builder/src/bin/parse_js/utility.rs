@@ -1,9 +1,9 @@
+use crate::utility::CommentState::{block, line, none};
+use once_cell::sync::Lazy;
+use regex::Regex;
 use std::collections::HashMap;
 use std::error::Error;
 use std::process::Command;
-use once_cell::sync::Lazy;
-use regex::Regex;
-use crate::utility::CommentState::{block, line, none};
 
 /// `start` should look something like `"var ClassName = function () {"`.
 /// The opening `{` is very important!
@@ -159,9 +159,9 @@ pub struct JFunctionCall {
 
 #[cfg(test)]
 mod tests {
-    use std::fs::File;
-    use std::io::{BufReader, read_to_string};
     use super::*;
+    use std::fs::File;
+    use std::io::{read_to_string, BufReader};
 
     #[test]
     fn test_names() {

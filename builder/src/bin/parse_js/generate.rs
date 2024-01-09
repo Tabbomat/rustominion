@@ -30,7 +30,7 @@ impl RustCodeGenerator {
         match definition.type_ {
             JavascriptContentType::Class => self.generate_class(&definition.start, content),
             JavascriptContentType::MapEnumToStatic => self.generate_enum_json(&definition.start, content),
-            _ => { Ok(()) }
+            _ => Ok(()),
         }
     }
 
@@ -39,7 +39,7 @@ impl RustCodeGenerator {
         static RE_CLASSNAME_SHORT: Lazy<Regex> = Lazy::new(|| Regex::new(r"function (\w+)\(").unwrap());
         let classname = match RE_CLASSNAME.captures(class_start) {
             Some(m) => m.get(1).unwrap().as_str(),
-            None => RE_CLASSNAME_SHORT.captures(class_start).unwrap().get(1).unwrap().as_str()
+            None => RE_CLASSNAME_SHORT.captures(class_start).unwrap().get(1).unwrap().as_str(),
         };
         let mut class = RustClass::new(classname);
         class.generate(content, self.version.as_str())?;
