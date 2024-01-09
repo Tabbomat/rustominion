@@ -69,7 +69,7 @@ pub fn unpack_map_js() -> Result<(), Box<dyn Error>> {
     };
 
     let javascript_map: JavascriptMap = serde_json::from_reader(BufReader::new(File::open(path)?))?;
-    let javascript_contents: JavascriptFileContents = serde_json::from_reader(BufReader::new(File::open("data/map_contents.json")?))?;
+    let javascript_contents: JavascriptFileContents = serde_json::from_reader(BufReader::new(File::open("../../../data/map_contents.json")?))?;
 
     assert_eq!(javascript_map.sources.len(), javascript_map.sources_content.len());
 
