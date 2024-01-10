@@ -16,8 +16,7 @@ pub struct RustCodeGenerator {
 
 impl RustCodeGenerator {
     pub fn new(version: String) -> Result<RustCodeGenerator, Box<dyn Error>> {
-        fs::create_dir_all("src/rustominion/generated")?;
-        fs::create_dir_all("src/bin/generate_json_data/generated")?;
+        fs::create_dir_all("rustominion/src/rustominion/generated")?;
 
         Ok(RustCodeGenerator {
             classes: vec![],
@@ -56,9 +55,7 @@ impl RustCodeGenerator {
 
 impl Drop for RustCodeGenerator {
     fn drop(&mut self) {
-        let mut class_mod = BufWriter::new(File::create("src/rustominion/generated/mod.rs").expect("Could not open mod.rs"));
-        // TODO: Remove this!
-        return;
+        let mut class_mod = BufWriter::new(File::create("rustominion/src/rustominion/generated/mod.rs").expect("Could not open mod.rs"));
         for class in &self.classes {
             writeln!(class_mod, "pub mod {};", class.filename()).expect("Could not write to mod.rs");
         }

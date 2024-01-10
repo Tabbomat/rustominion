@@ -16,7 +16,7 @@ pub struct RustClass {
 impl RustClass {
     pub fn new(name: &str) -> RustClass {
         RustClass {
-            path: format!("src/rustominion/generated/{}.rs", name.to_lowercase()),
+            path: format!("rustominion/src/rustominion/generated/{}.rs", name.to_lowercase()),
             name: name.to_owned(),
             constructor: None,
             methods: vec![],

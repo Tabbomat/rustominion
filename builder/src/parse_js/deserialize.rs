@@ -5,7 +5,9 @@ use std::collections::HashMap;
 use std::error::Error;
 use std::fs;
 use std::fs::File;
-use std::io::BufReader;
+use std::io::{BufReader, LineWriter, Write};
+use std::iter::zip;
+use std::path::Path;
 
 #[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -69,21 +71,30 @@ pub fn unpack_map_js() -> Result<(), Box<dyn Error>> {
     };
 
     let javascript_map: JavascriptMap = serde_json::from_reader(BufReader::new(File::open(path)?))?;
-    let javascript_contents: JavascriptFileContents = serde_json::from_reader(BufReader::new(File::open("../../../data/map_contents.json")?))?;
+    let javascript_contents: JavascriptFileContents = serde_json::from_reader(BufReader::new(File::open("data/map_contents.json")?))?;
 
-    assert_eq!(javascript_map.sources.len(), javascript_map.sources_content.len());
+    debug_assert_eq!(javascript_map.sources.len(), javascript_map.sources_content.len());
 
     let mut generator = RustCodeGenerator::new(version)?;
+    dbg!(cfg!(feature = "debug"));
+    #[cfg(feature = "debug")] {
+        for (source, content) in zip(&javascript_map.sources, &javascript_map.sources_content).filter(|(s, _)| javascript_contents.contains_key(*s)) {
+            let path = Path::new(source);
+            let mut writer = LineWriter::new(File::create(format!("data/{}", path.file_name().unwrap().to_str().unwrap())).unwrap());
+            writer.write_all(content.as_bytes()).unwrap();
+        }
+    }
 
-    for index in 0..javascript_map.sources.len() {
-        let source = &javascript_map.sources[index];
-        let content = &javascript_map.sources_content[index];
-
-        if let Some(data) = javascript_contents.get(source) {
-            for def in data {
-                let content = get_definition(def.start.as_ref(), content).unwrap();
-                generator.generate(def, content)?;
-            }
+    for (data, content) in zip(javascript_map.sources, javascript_map.sources_content).filter_map(|(source, content)| {
+        if let Some(data) = javascript_contents.get(&source) {
+            Some((data, content))
+        } else {
+            None
+        }
+    }) {
+        for def in data {
+            let content = get_definition(def.start.as_ref(), &content).unwrap();
+            generator.generate(def, content)?;
         }
     }
 
